@@ -76,7 +76,26 @@ master_df.to_csv("master_merged.csv", index=False)
 @st.cache_resource
 def load_hospital_engine():
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    vector_db = FAISS.load_local("hospital_index", embeddings, allow_dangerous_deserialization=True)
+    
+    index_paths = [
+        "hospital_index",
+        "./hospital_index",
+        "/mount/src/hospital-intelligence-rag-system/hospital_index"
+    ]
+    
+    vector_db = None
+    for path in index_paths:
+        if os.path.exists(path):
+            try:
+                vector_db = FAISS.load_local(path, embeddings, allow_dangerous_deserialization=True)
+                break
+            except:
+                continue
+    
+    if vector_db is None:
+        st.error("❌ FAISS index not found!")
+        st.stop()
+    
     llm = ChatGroq(model_name="llama-3.1-8b-instant", temperature=0)
     reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
     bm25_index = BM25Okapi(master_df['info_for_bot'].tolist())
