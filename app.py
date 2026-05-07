@@ -106,19 +106,15 @@ Answer:"""
 prompt = ChatPromptTemplate.from_template(template)
 
 REWRITE_PROMPT = ChatPromptTemplate.from_template("""
-You are a query re-writer for a Hospital RAG system. 
-Your goal is to look at the Chat History and the New Question, and create a single, clear search query that includes the specific Patient or Physician name being discussed.
-
-Rules:
-1. If the user uses pronouns like "his", "her", or "their", replace them with the name of the person discussed earlier in the history.
-2. Ignore purely numerical answers in the history when looking for the subject.
-3. If no person is mentioned in history, return the question as is.
+Given a chat history and the latest user question which might reference context in the chat history, 
+formulate a standalone question which can be understood without the chat history. 
+Do NOT answer the question, just reformulate it if needed and otherwise return it as is.
 
 Chat History:
 {chat_history}
 
-New Question: {question}
-Standalone Search Query:""")
+Follow Up Input: {question}
+Standalone question:""")
 
 def ask_hospital_bot(query, chat_history_list):
     history_str = "\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history_list[-3:]])
