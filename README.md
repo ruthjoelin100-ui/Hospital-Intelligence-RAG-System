@@ -32,8 +32,10 @@ The system implements a **Modular RAG Architecture** to ensure data grounding an
 ├── app.py                # Main application logic & Streamlit UI
 ├── requirements.txt      # Dependency manifest
 └── README.md             # Project documentation
-```markdown
+
 ---
+
+```markdown
 
 ## Key Functionalities
 ### **1. Hybrid Search & Re-ranking**
