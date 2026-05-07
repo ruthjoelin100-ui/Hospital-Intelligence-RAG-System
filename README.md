@@ -2,9 +2,9 @@
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://hospital-intelligence-rag-system.streamlit.app/)
 ---
 
-**An Advanced Retrieval-Augmented Generation (RAG) Pipeline for Healthcare Analytics**
+**A Retrieval-Augmented Generation (RAG) Pipeline for Healthcare Analytics**
 
-This repository contains a professional-grade RAG application designed to interface with complex healthcare datasets. It leverages a hybrid retrieval strategy and a cross-encoder re-ranking pipeline to provide high-precision answers to natural language queries regarding patient records, physician performance, and billing logistics.
+This repository contains a RAG application for querying and analyzing healthcare datasets  It uses a hybrid retrieval strategy and a cross-encoder re-ranking pipeline to provide more accurate answers to natural language queries regarding patient records, physician performance, and billing logistics.
 
 ---
 
@@ -24,8 +24,27 @@ The system implements a **Modular RAG Architecture** to ensure data grounding an
     * **Sparse Retrieval:** `BM25Okapi` for keyword-based exact matching.
 * **Re-ranking Layer:** `CrossEncoder (ms-marco-MiniLM-L6-v2)` to surface the most relevant context.
 * **Query Transformation:** Integrated **Contextual Query Reformulation** to handle multi-turn conversations and anaphora resolution (e.g., "his", "her").
-
 ---
+
+## RAG Pipeline Flow
+
+```text
+User Query
+   ↓
+Contextual Query Reformulation
+   ↓
+Hybrid Retrieval
+(FAISS Dense Search + BM25 Sparse Search)
+   ↓
+Cross-Encoder Re-ranking
+(ms-marco-MiniLM-L6-v2)
+   ↓
+Top-k Relevant Context
+   ↓
+Llama-3.1-8b-Instant (Groq)
+   ↓
+Grounded AI Response
+```
 
 # Project Structure
 
@@ -58,7 +77,7 @@ Features a dedicated **Data Inspection Layer**, allowing users to view the raw d
 ### 2. Installation
 **a. Clone the repository:**
 ```bash
-git clone [https://github.com/your-username/Hospital-Intelligence-RAG-System.git](https://github.com/your-username/Hospital-Intelligence-RAG-System.git)
+git clone [git clone https://github.com/ruthjoelin100-ui/Hospital-Intelligence-RAG-System.git)
 cd Hospital-Intelligence-RAG-System
 ```
 
