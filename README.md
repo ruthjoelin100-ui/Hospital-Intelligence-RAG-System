@@ -4,7 +4,7 @@
 
 **A Retrieval-Augmented Generation (RAG) Pipeline for Healthcare Analytics**
 
-This repository contains a RAG application for querying and analyzing healthcare datasets  It uses a hybrid retrieval strategy and a cross-encoder re-ranking pipeline to provide more accurate answers to natural language queries regarding patient records, physician performance, and billing logistics.
+This repository contains a RAG application for querying and analyzing healthcare datasets. It uses a hybrid retrieval strategy and a cross-encoder re-ranking pipeline to provide more accurate answers to natural language queries regarding patient records, physician performance, and billing logistics.
 
 ---
 
@@ -15,15 +15,15 @@ This repository contains a RAG application for querying and analyzing healthcare
 
 ## Architecture & Technical Stack
 
-The system implements a **Modular RAG Architecture** to ensure data grounding and reduce hallucinations:
+The system uses a modular RAG pipeline to improve retrieval accuracy and reduce hallucinations.
 
-* **LLM Engine:** `Llama-3.1-8b-Instant` via **Groq Cloud** for sub-second inference latency.
-* **Orchestration:** **LangChain** for stateful conversation management.
+* **LLM Engine:** `Llama-3.1-8b-Instant` via **Groq Cloud** for fast response generation.
+* **Framework:** **LangChain** for managing the conversational workflow.
 * **Hybrid Retrieval:**
-    * **Dense Retrieval:** `FAISS` using `all-MiniLM-L6-v2` embeddings for semantic context.
-    * **Sparse Retrieval:** `BM25Okapi` for keyword-based exact matching.
-* **Re-ranking Layer:** `CrossEncoder (ms-marco-MiniLM-L6-v2)` to surface the most relevant context.
-* **Query Transformation:** Integrated **Contextual Query Reformulation** to handle multi-turn conversations and anaphora resolution (e.g., "his", "her").
+    * **Dense Retrieval:** `FAISS` with `all-MiniLM-L6-v2` embeddings for semantic search.
+    * **Sparse Retrieval:** `BM25Okapi` for keyword-based matching.
+* **Re-ranking:** `CrossEncoder (ms-marco-MiniLM-L6-v2)` to rank retrieved documents by relevance before generation.
+* **Query Reformulation:** Rewrites a vague follow-up question into standalone queries using conversation history.
 ---
 
 ## RAG Pipeline Flow
@@ -57,14 +57,15 @@ Grounded AI Response
 ```
 
 ## Key Functionalities
+
 ### **1. Hybrid Search & Re-ranking**
-By combining **FAISS** with **BM25** and passing results through a **Cross-Encoder**, the system ensures that qualitative data (like patient reviews) and quantitative data (like billing amounts) are both retrieved with high fidelity.
+The system combines **FAISS** semantic search with **BM25** keyword search to retrieve more relevant information from the dataset. Retrieved results are then passed through a **Cross-Encoder** re-ranking model to improve context quality before generation.
 
 ### **2. Contextual Memory**
-Utilizes a "Query Rewriter" pattern. The system analyzes chat history to transform vague follow-up questions into standalone search queries, ensuring the retrieval engine remains focused on the correct subject throughout a session.
+A query reformulation layer rewrites vague follow-up questions into standalone queries using conversation history. This helps the system maintain context across multi-turn conversations.
 
 ### **3. Transparent Data Inspection**
-Features a dedicated **Data Inspection Layer**, allowing users to view the raw dataframes utilized by the RAG engine to verify groundedness.
+Users can inspect the raw dataframes used by the RAG pipeline, making it easier to verify where retrieved information comes from.
 
 ---
 
