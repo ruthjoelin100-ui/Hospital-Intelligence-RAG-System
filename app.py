@@ -105,24 +105,45 @@ Question: {question}
 Answer:"""
 prompt = ChatPromptTemplate.from_template(template)
 
-def ask_hospital_bot(query, chat_history_list):
-    history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history_list[-5:]])
+REWRITE_PROMPT = ChatPromptTemplate.from_template("""
+Given a chat history and the latest user question which might reference context in the chat history, 
+formulate a standalone question which can be understood without the chat history. 
+Do NOT answer the question, just reformulate it if needed and otherwise return it as is.
 
-    vector_results = vector_db.similarity_search(query, k=10)
+Chat History:
+{chat_history}
+
+Follow Up Input: {question}
+Standalone question:""")
+
+def ask_hospital_bot(query, chat_history_list):
+    history_str = "\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history_list[-3:]])
+
+    rewriter_chain = REWRITE_PROMPT | llm | StrOutputParser()
+    try:
+        standalone_query = rewriter_chain.invoke({
+            "chat_history": history_str, 
+            "question": query
+        })
+    except Exception:
+        # Fallback to original query if the API call fails
+        standalone_query = query
+
+    vector_results = vector_db.similarity_search(standalone_query, k=10)
     vector_texts = [res.page_content for res in vector_results]
 
-    tokenized_query = query.split(" ")
+    tokenized_query = standalone_query.split(" ")
     bm25_texts = bm25_index.get_top_n(tokenized_query, master_df['info_for_bot'].tolist(), n=10)
 
     all_candidates = list(set(vector_texts + bm25_texts))
-    pairs = [[query, cand] for cand in all_candidates]
+    pairs = [[standalone_query, cand] for cand in all_candidates]
     scores = reranker.predict(pairs)
     final_context = [cand for _, cand in sorted(zip(scores, all_candidates), reverse=True)][:3]
 
     gen_chain = prompt | llm | StrOutputParser()
     response = gen_chain.invoke({
         "context": "\n\n".join(final_context),
-        "chat_history": history,
+        "chat_history": history_str,
         "question": query
     })
 
