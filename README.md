@@ -1,5 +1,7 @@
 # 🏥 Hospital Intelligence RAG System
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://hospital-intelligence-rag-system.streamlit.app/)
+---
+
 **An Advanced Retrieval-Augmented Generation (RAG) Pipeline for Healthcare Analytics**
 
 This repository contains a professional-grade RAG application designed to interface with complex healthcare datasets. It leverages a hybrid retrieval strategy and a cross-encoder re-ranking pipeline to provide high-precision answers to natural language queries regarding patient records, physician performance, and billing logistics.
