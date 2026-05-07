@@ -24,18 +24,15 @@ The system implements a **Modular RAG Architecture** to ensure data grounding an
 
 ---
 
-## Project Structure
+# Project Structure
 
-```text
+```
 ├── hospital_data/        # Relational CSV datasets (Patients, Visits, Reviews, etc.)
 ├── hospital_index/       # Serialized FAISS Vector Index (index.faiss & index.pkl)
 ├── app.py                # Main application logic & Streamlit UI
 ├── requirements.txt      # Dependency manifest
 └── README.md             # Project documentation
-
----
-
-```markdown
+```
 
 ## Key Functionalities
 ### **1. Hybrid Search & Re-ranking**
@@ -60,17 +57,21 @@ Features a dedicated **Data Inspection Layer**, allowing users to view the raw d
 ```bash
 git clone [https://github.com/your-username/Hospital-Intelligence-RAG-System.git](https://github.com/your-username/Hospital-Intelligence-RAG-System.git)
 cd Hospital-Intelligence-RAG-System
+```
 
 **b.Install Dependencies:**
 ```bash
 pip install -r requirements.txt
+```
 
 **c.Environment Secrets:**
 Configure your GROQ_API_KEY in Streamlit secrets or as an environment variable:
 ```bash
 # .streamlit/secrets.toml
 GROQ_API_KEY = "your_actual_key_here"
+```
 
 ### 3. Run Application
 ```bash
 streamlit run app.py
+```
