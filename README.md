@@ -32,17 +32,17 @@ The system implements a **Modular RAG Architecture** to ensure data grounding an
 ├── app.py                # Main application logic & Streamlit UI
 ├── requirements.txt      # Dependency manifest
 └── README.md             # Project documentation
-
+```markdown
 ---
 
 ## Key Functionalities
-###**1. Hybrid Search & Re-ranking**
+### **1. Hybrid Search & Re-ranking**
 By combining **FAISS** with **BM25** and passing results through a **Cross-Encoder**, the system ensures that qualitative data (like patient reviews) and quantitative data (like billing amounts) are both retrieved with high fidelity.
 
-###**2. Contextual Memory**
+### **2. Contextual Memory**
 Utilizes a "Query Rewriter" pattern. The system analyzes chat history to transform vague follow-up questions into standalone search queries, ensuring the retrieval engine remains focused on the correct subject throughout a session.
 
-###**3. Transparent Data Inspection**
+### **3. Transparent Data Inspection**
 Features a dedicated **Data Inspection Layer**, allowing users to view the raw dataframes utilized by the RAG engine to verify groundedness.
 
 ---
