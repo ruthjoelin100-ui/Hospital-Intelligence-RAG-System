@@ -15,8 +15,9 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from rank_bm25 import BM25Okapi
 from langchain_core.documents import Document
+from rank_bm25 import BM25Okapi
+from sentence_transformers import CrossEncoder
 
 os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
@@ -74,36 +75,57 @@ master_df.to_csv("master_merged.csv", index=False)
 @st.cache_resource
 def load_hospital_engine():
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    docs = [Document(page_content=text) for text in master_df['info_for_bot'].tolist()]
+    
+    docs = []
+    for _, row in master_df.iterrows():
+        docs.append(Document(
+            page_content=row['info_for_bot'],
+            metadata={
+                "state": row['hospital_state'],
+                "patient_id": int(row['patient_id']),
+                "hospital": row['hospital_name']
+            }
+        ))
+    
     vector_db = FAISS.from_documents(docs, embeddings)
+    tokenized_corpus = [doc.page_content.split(" ") for doc in docs]
+    bm25_index = BM25Okapi(tokenized_corpus)
+    
     llm = ChatGroq(model_name="llama-3.1-8b-instant", temperature=0)
-    bm25_index = BM25Okapi(master_df['info_for_bot'].tolist())
-    return vector_db, llm, bm25_index
+    reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
+    
+    return vector_db, llm, reranker, bm25_index
 
-vector_db, llm, bm25_index = load_hospital_engine()
+vector_db, llm, reranker, bm25_index = load_hospital_engine()
 
-template = """You are a professional hospital assistant. Answer based ONLY on context.
+template = """You are a professional hospital assistant. Answer based ONLY on context and history.
 Context: {context}
+Chat History: {chat_history}
 Question: {question}
 Answer:"""
 prompt = ChatPromptTemplate.from_template(template)
 
-def ask_hospital_bot(query, chat_history):
+def ask_hospital_bot(query, chat_history_list):
+    history = "\n".join([f"{msg['role']}: {msg['content']}" for msg in chat_history_list[-5:]])
+
     vector_results = vector_db.similarity_search(query, k=10)
     vector_texts = [res.page_content for res in vector_results]
-    
-    tokenized_query = query.lower().split()
+
+    tokenized_query = query.split(" ")
     bm25_texts = bm25_index.get_top_n(tokenized_query, master_df['info_for_bot'].tolist(), n=10)
-    
-    combined = vector_texts + bm25_texts
-    final_context = "\n\n".join(combined[:5])
-    
+
+    all_candidates = list(set(vector_texts + bm25_texts))
+    pairs = [[query, cand] for cand in all_candidates]
+    scores = reranker.predict(pairs)
+    final_context = [cand for _, cand in sorted(zip(scores, all_candidates), reverse=True)][:3]
+
     gen_chain = prompt | llm | StrOutputParser()
     response = gen_chain.invoke({
-        "context": final_context,
+        "context": "\n\n".join(final_context),
+        "chat_history": history,
         "question": query
     })
-    
+
     return response
 
 with st.sidebar:
@@ -111,7 +133,7 @@ with st.sidebar:
     st.success("✅ FAISS Index: Connected")
     st.info("🤖 Model: Llama-3.1-8b")
     st.warning("🔍 Retrieval: Hybrid (BM25 + Vector)")
-    
+
     st.divider()
     if st.button("🗑️ Clear Chat History"):
         st.session_state.messages = []
